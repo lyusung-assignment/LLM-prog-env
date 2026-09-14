@@ -6,9 +6,9 @@ services:
     image: llm-lab:cu126
     container_name: llm-lab
 
-    # --- GPU 할당 (Docker Desktop + NVIDIA Container Toolkit 필요) ---
+    # --- GPU allocation (requires Docker Desktop + NVIDIA Container Toolkit) ---
     gpus: all
-    # 위 한 줄이 안 먹으면 아래 deploy 블록으로 대체하세요.
+    # If the one-liner above does not work, replace it with the deploy block below.
     # deploy:
     #   resources:
     #     reservations:
@@ -19,11 +19,13 @@ services:
 
     ports:
       - "8888:8888"    # JupyterLab
-      - "6006:6006"    # TensorBoard (선택)
+      - "6006:6006"    # TensorBoard (optional)
 
     volumes:
-      - ./workspace:/workspace          # 코드/노트북 (호스트와 공유)
-      - hf-cache:/workspace/.cache      # 모델 가중치 캐시 (재빌드해도 유지)
+      - ./workspace:/workspace          # Code/notebooks (shared with the host)
+      - hf-cache:/workspace/.cache      # Model weight cache (survives rebuilds)
+      - conda-envs:/envs                # Per-lab conda envs (survive `compose down`)
+      - jupyter-kernels:/root/.local/share/jupyter/kernels   # Per-lab Jupyter kernels
 
     environment:
       - JUPYTER_TOKEN=${JUPYTER_TOKEN:-llm}
@@ -32,7 +34,7 @@ services:
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=compute,utility
 
-    # Large Model 로딩 시 /dev/shm 부족으로 죽는 것 방지
+    # Prevents silent crashes from /dev/shm exhaustion when loading large models
     shm_size: "16gb"
     ipc: host
 
@@ -42,3 +44,5 @@ services:
 
 volumes:
   hf-cache:
+  conda-envs:
+  jupyter-kernels:

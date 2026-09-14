@@ -1,5 +1,5 @@
 # =====================================================================
-#  LLM Research/Development GPU container (Ubuntu 22.04 + CUDA 12.6 + PyTorch 2.6 + HuggingFace + LangGraph + Jupyter)
+#  LLM Research/Development GPU container (Ubuntu 22.04 + CUDA 12.6 + PyTorch 2.13 + HuggingFace + LangGraph + Jupyter)
 #  Host(Windows) responsible: NVIDIA graphics driver + Docker Desktop(WSL2 backend)
 #  Container responsible: CUDA toolkit / Anaconda / conda environment llm / Python stack
 # =====================================================================
@@ -61,30 +61,35 @@ RUN conda create -n $ENV_NAME python=3.11 -y \
 # Every RUN command after this will be executed in the llm conda environment
 SHELL ["conda", "run", "--no-capture-output", "-n", "llm", "/bin/bash", "-lc"]
 
+# ---------- Version constraints shared by every pip layer below ----------
+# A `==` pin inside one RUN does not bind later RUNs, so an unpinned transitive
+# dependency can silently upgrade an already-pinned package. This file is passed
+# to every pip install via `-c` to prevent that. See constraints.txt for details.
+COPY constraints.txt /tmp/constraints.txt
+
 # ---------- PyTorch (CUDA 12.6 runtime included wheel) ----------
 RUN pip install --upgrade pip setuptools wheel \
-    && pip install \
-        torch==2.6.0 \
-        torchvision==0.21.0 \
-        torchaudio==2.6.0 \
+    && pip install -c /tmp/constraints.txt \
+        torch==2.13.0 \
+        torchvision==0.28.0 \
         --index-url https://download.pytorch.org/whl/cu126
 
 # ---------- HuggingFace stack ----------
-RUN pip install \
-        transformers==4.49.0 \
-        datasets==3.3.2 \
-        accelerate==1.4.0 \
-        peft==0.14.0 \
-        trl==0.15.2 \
+RUN pip install -c /tmp/constraints.txt \
+        transformers==5.14.1 \
+        datasets==5.0.0 \
+        accelerate==1.14.0 \
+        peft==0.20.0 \
+        trl==1.13.0 \
         tokenizers \
         safetensors \
         sentencepiece \
         evaluate \
         huggingface_hub[cli] \
-        bitsandbytes==0.45.3
+        bitsandbytes==0.50.2
 
 # ---------- LangChain / LangGraph ----------
-RUN pip install \
+RUN pip install -c /tmp/constraints.txt \
         langchain==0.3.9 \
         langchain-community==0.3.8 \
         langchain-core==0.3.21 \
@@ -94,7 +99,7 @@ RUN pip install \
         langsmith
 
 # ---------- Jupyter + kernel registration + analysis tools ----------
-RUN pip install \
+RUN pip install -c /tmp/constraints.txt \
         jupyterlab \
         notebook \
         ipykernel \
@@ -121,9 +126,17 @@ SHELL ["/bin/bash", "-lc"]
 ENV PATH=$CONDA_DIR/envs/llm/bin:$PATH \
     CONDA_DEFAULT_ENV=llm
 
+# ---------- Per-lab conda environments ----------
+# /envs is a named volume (see docker-compose.yml), so environments created there
+# survive `docker compose down`. Prepending it to envs_dirs makes it the default
+# target, so `conda create -n lab01` lands on the volume instead of an image layer.
+# This runs AFTER the built-in `llm` env is created, so `llm` stays in the image
+# at /opt/conda/envs/llm and is never shadowed by the volume.
+RUN mkdir -p /envs \
+    && /opt/conda/bin/conda config --system --prepend envs_dirs /envs
+
 # HuggingFace cache location
 ENV HF_HOME=/workspace/.cache/huggingface \
-    TRANSFORMERS_CACHE=/workspace/.cache/huggingface/hub \
     TORCH_HOME=/workspace/.cache/torch
 
 WORKDIR /workspace

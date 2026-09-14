@@ -1,0 +1,41 @@
+# Version constraints applied to EVERY `pip install` in the Dockerfile via `-c`.
+#
+# Why this file exists: a `==` pin in one RUN layer does not bind later layers.
+# `langchain-huggingface` pulls in `sentence-transformers`, which in turn pins a
+# `transformers` range -- and that silently overrode the version pinned earlier.
+# Constraints apply to the whole resolution, so that cannot happen here.
+#
+# These versions mirror the course reference machine (Lab1_VSCode.pdf):
+#   Python 3.11 / torch 2.13.0+cu126 / transformers 5.14.1 / datasets 5.0.0
+#   / accelerate 1.14.0 / CUDA 12.6
+#
+# Note: constraints do NOT install anything. They only cap versions of packages
+# that some install request already pulls in.
+
+# ---------- PyTorch (must match the cu126 --index-url in the Dockerfile) ----------
+# torchaudio is deliberately absent: the cu126 index tops out at 2.11.0, which has
+# no counterpart for torch 2.13.0. The reference machine does not have it either.
+torch==2.13.0
+torchvision==0.28.0
+
+# ---------- HuggingFace (versions from the reference machine) ----------
+transformers==5.14.1
+datasets==5.0.0
+accelerate==1.14.0
+tokenizers==0.22.2
+
+# ---------- Not on the reference machine; pinned to what resolves cleanly ----------
+peft==0.20.0
+trl==1.13.0
+bitsandbytes==0.50.2
+
+# ---------- Transitive, but version-critical ----------
+# Dragged in by langchain-huggingface, and it constrains `transformers`.
+sentence-transformers==6.0.1
+
+# ---------- LangChain / LangGraph ----------
+# Held at 0.3.x on purpose: the 1.x line changed the API substantially.
+langchain==0.3.9
+langchain-community==0.3.8
+langchain-core==0.3.21
+langgraph==0.2.53

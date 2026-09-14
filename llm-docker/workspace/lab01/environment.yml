@@ -1,0 +1,51 @@
+# ---------------------------------------------------------------------------
+# Lab 1 environment - matches the course reference machine.
+#
+#   Create : docker compose exec llm conda env create -f /workspace/lab01/environment.yml
+#   Verify : docker compose exec llm conda run -n lab01 python /workspace/lab01/check_env.py
+#   Remove : docker compose exec llm conda env remove -n lab01
+#
+# Lands in /envs/lab01 (a named volume), so it survives `docker compose down`.
+# To start a new lab, copy this file to ../lab02/ and edit `name:` + versions.
+# ---------------------------------------------------------------------------
+name: lab01
+
+channels:
+  - defaults
+
+dependencies:
+  - python=3.11.15
+  - pip
+
+  - pip:
+      # PyTorch must come from the CUDA 12.6 wheel index; everything else
+      # resolves from PyPI via the extra index below.
+      - --index-url=https://download.pytorch.org/whl/cu126
+      - --extra-index-url=https://pypi.org/simple
+
+      # --- versions taken from the reference machine ---
+      - torch==2.13.0
+      - torchvision==0.28.0
+      - transformers==5.14.1
+      - datasets==5.0.0
+      - accelerate==1.14.0
+
+      # --- not shown on the reference machine; pinned to whatever resolves
+      #     cleanly against the five versions above ---
+      - peft==0.20.0
+      - trl==1.13.0
+      - bitsandbytes==0.50.2
+
+      # --- remaining Lab 1 packages (Lab1_VSCode.pdf, slides 21 and 25) ---
+      - evaluate
+      - sentencepiece
+      - safetensors
+      - huggingface-hub
+      - tokenizers
+      - tensorboard
+      - scikit-learn
+      - pandas
+      - matplotlib
+      - tqdm
+      - jupyter
+      - ipykernel

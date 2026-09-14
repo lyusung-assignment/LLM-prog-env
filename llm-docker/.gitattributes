@@ -1,5 +1,5 @@
-# 클론하는 OS와 무관하게 컨테이너 안에서 쓰이는 파일은 LF로 고정
-# (CRLF가 섞이면 리눅스 컨테이너 안에서 실행 시 깨집니다)
+# Force LF for files used inside the container, regardless of the cloning OS
+# (mixed-in CRLF breaks execution inside the Linux container)
 * text=auto eol=lf
 *.ps1 text eol=crlf
 *.png binary

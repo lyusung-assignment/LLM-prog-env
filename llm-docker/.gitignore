@@ -1,7 +1,7 @@
-# 실제 토큰/키 - 절대 커밋 금지 (.env.example만 공유)
+# Real tokens/keys - never commit (only .env.example is shared)
 .env
 
-# 모델 가중치 / 캐시 (수십 GB)
+# Model weights / caches (tens of GB)
 workspace/.cache/
 workspace/outputs/
 workspace/checkpoints/
@@ -13,7 +13,7 @@ workspace/data/
 *.pt
 *.ckpt
 
-# 노트북 실행 결과물
+# Notebook execution artifacts
 .ipynb_checkpoints/
 **/__pycache__/
 *.pyc
