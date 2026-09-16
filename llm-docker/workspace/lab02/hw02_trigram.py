@@ -1,14 +1,15 @@
-"""HW#2 - Generate Restaurant Sentences with Trigram Model (슬라이드 p.13).
+"""HW#2 - Generate restaurant sentences with a trigram model (slide 13).
 
-바이그램 생성(p.9)을 트라이그램으로 확장한다.
+Extends the bigram generator from slide 9 to trigrams:
     P(w_i+2 | w_i, w_i+1) = C(w_i, w_i+1, w_i+2) / C(w_i, w_i+1)
 
-핵심 차이
-    - 상태(context)가 단어 1개가 아니라 (앞앞 단어, 앞 단어) 2개다.
-    - 첫 단어는 트라이그램 context가 아직 없으므로 (<s>, w) 바이그램에서 뽑는다.
-    - 해당 context의 트라이그램이 하나도 없으면 바이그램으로 backoff 한다.
+What changes
+    - The context is two words (w_i, w_i+1), not one.
+    - The first word has no trigram context yet, so it is drawn from the
+      (<s>, w) bigrams.
+    - When a context has no trigram at all, back off to the bigram.
 
-실행:
+Run:
     python hw02_trigram.py
 """
 
@@ -18,7 +19,8 @@ from collections import Counter
 from ngram import BOS, EOS, NgramModel, build_corpus
 
 # -------------------------------------------------------------------------
-# 1) 직접 구현 버전 (제출용으로 이 부분을 읽고 이해할 것)
+# 1) Hand-written implementation - read and understand this part before
+#    submitting.
 # -------------------------------------------------------------------------
 corpus = build_corpus()
 
@@ -33,7 +35,7 @@ for sentence in corpus:
 
 
 def sample_next_word_bigram(previous_word):
-    """바이그램 카운트를 가중치로 다음 단어 샘플링."""
+    """Sample the next word, weighting candidates by their bigram counts."""
     candidates = []
     weights = []
     for (w1, w2), count in bigram_counts.items():
@@ -46,7 +48,7 @@ def sample_next_word_bigram(previous_word):
 
 
 def sample_next_word_trigram(w1, w2):
-    """(w1, w2) context에서 다음 단어 샘플링. context가 없으면 바이그램 backoff."""
+    """Sample on the context (w1, w2), backing off to the bigram when unseen."""
     candidates = []
     weights = []
     for (a, b, c), count in trigram_counts.items():
@@ -59,8 +61,8 @@ def sample_next_word_trigram(w1, w2):
 
 
 def generate_sentence_trigram(max_length=15):
-    """<s>에서 시작해 트라이그램으로 문장을 생성한다."""
-    first = sample_next_word_bigram(BOS)   # 첫 단어는 바이그램으로
+    """Start at <s> and generate a sentence with the trigram model."""
+    first = sample_next_word_bigram(BOS)   # no trigram context yet
     if first == EOS:
         return ""
 
@@ -76,30 +78,33 @@ def generate_sentence_trigram(max_length=15):
 
 
 # -------------------------------------------------------------------------
-# 2) 비교: 바이그램 생성 vs 트라이그램 생성
+# 2) Compare bigram generation against trigram generation
 # -------------------------------------------------------------------------
 def main():
-    random.seed(42)  # 재현 가능하게. 제출 전에 여러 seed로 돌려볼 것.
+    random.seed(42)  # reproducible; try other seeds before submitting
 
     model = NgramModel(corpus)
 
-    print("=== Bigram 생성 (p.9) ===")
+    print("=== Bigram generation (slide 9) ===")
     for _ in range(10):
         print(" ", model.generate_sentence())
 
-    print("\n=== Trigram 생성 (HW#2, 직접 구현) ===")
+    print("\n=== Trigram generation (HW#2, hand-written) ===")
     for _ in range(10):
         print(" ", generate_sentence_trigram())
 
-    print("\n=== 생성 문장의 perplexity 비교 ===")
+    print("\n=== Perplexity of the generated sentences ===")
     for _ in range(5):
         s = generate_sentence_trigram()
         print(f"  {s!r:45s} PP={model.perplexity(s, mode='backoff'):.3f}")
 
-    print("\n=== 관찰 포인트 ===")
-    print("  - 트라이그램은 학습 문장을 거의 그대로 재현한다(데이터가 15문장뿐이라).")
-    print("  - context가 길수록 카운트가 희박해져 zero-probability가 심해진다.")
-    print("  - 그래서 backoff / interpolation 같은 smoothing이 필요하다.")
+    print("\n=== What to notice ===")
+    print("  - The trigram model mostly replays the training sentences,")
+    print("    because there are only 15 of them.")
+    print("  - A longer context means sparser counts and more zero")
+    print("    probabilities.")
+    print("  - That is exactly why smoothing (backoff / interpolation)")
+    print("    is needed.")
 
 
 if __name__ == "__main__":
