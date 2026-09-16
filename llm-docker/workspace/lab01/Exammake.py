@@ -3,7 +3,7 @@
 Prints the author's affiliation and name.
 
 Run:
-    docker compose exec llm python /workspace/main.py
+    docker compose exec llm python /workspace/lab01/Exammake.py
 """
 
 AFFILIATION = "Sangmyung University Computer Science"
