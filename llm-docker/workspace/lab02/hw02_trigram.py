@@ -19,8 +19,7 @@ from collections import Counter
 from ngram import BOS, EOS, NgramModel, build_corpus
 
 # -------------------------------------------------------------------------
-# 1) Hand-written implementation - read and understand this part before
-#    submitting.
+# 1) Trigram counts and sampling
 # -------------------------------------------------------------------------
 corpus = build_corpus()
 
