@@ -15,7 +15,11 @@ so the parts of its API this assignment needs - most_similar and similarity -
 are provided by the SkipGram class below under the same names.
 """
 
+import os
+
 import numpy as np
+
+HERE = os.path.dirname(os.path.abspath(__file__))
 
 SEED = 42
 EMBEDDING_SIZE = 32
@@ -336,10 +340,14 @@ def problem2(models):
 # -------------------------------------------------------------------------
 # Problem 3 - 2-D PCA visualization
 # -------------------------------------------------------------------------
-def problem3(models, path="hw3_pca.png"):
+def problem3(models, path=None):
     print("=" * 74)
     print("Problem 3. 2-D PCA of 12 selected words")
     print("=" * 74)
+
+    # Written beside this file, so the output lands in the same place
+    # no matter which directory the script is run from.
+    path = path or os.path.join(HERE, "hw3_pca.png")
 
     import matplotlib
     matplotlib.use("Agg")          # write a file, do not open a window

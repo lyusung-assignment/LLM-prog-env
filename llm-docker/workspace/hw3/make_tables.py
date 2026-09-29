@@ -7,12 +7,13 @@ models in hw3_word2vec.py so the report never disagrees with the code.
 """
 
 import io
+import os
 
 import numpy as np
 
 import hw3_word2vec as hw
 
-OUT = "TABLES.md"
+OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "TABLES.md")
 
 
 def table(headers, rows):
